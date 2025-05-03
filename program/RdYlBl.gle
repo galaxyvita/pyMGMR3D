@@ -1,0 +1,83 @@
+
+sub Rd_RdYlBl Cscale
+    !local Cscale = 0.1+Cs*0.8
+    if(Cscale < 0.4) then
+        local Red = (sin(pi*(Cscale+.1)))^0.3
+    else
+        local Red = (cos(pi*(Cscale-0.4)/1.2))^2
+    end if
+  return Red
+end sub
+sub Grn_RdYlBl Cscale
+    !local Cscale = 0.1+Cs*0.8
+    if(Cscale < 0.5) then
+        local Green = sin(pi*Cscale)^2
+    else
+        local Green = cos(pi*(Cscale-0.5))
+    end if
+  return Green
+end sub
+sub Bl_RdYlBl Cscale
+    !local Cscale = 0.1+Cs*0.8
+  if(Cscale > 0.1) then
+    local Blue = (cos(pi*(Cscale-0.5)))^0.5
+    !local Blue = (cos(pi*Cscale))^0.5  ! makes it green at the end
+    local Bluex = (Cscale-0.1)/0.9
+    !if(Bluex < Blue) then
+        Blue=Bluex
+    !end if
+  else
+    local Blue = 0.
+  end if
+  return Blue
+end sub
+sub RdYlBl Cscale
+    !local Cscale = 0.1+Cs*0.8
+    local Red = Rd_RdYlBl(Cscale)
+    local Green = Grn_RdYlBl(Cscale)
+    local Blue = Bl_RdYlBl(Cscale)
+    set color rgb(Red,Green,Blue)
+end sub
+
+sub palette_Lightning z  ! expected: z ranges from 0 to 1 
+! a custom palette used in the lightning plots, ranging from Yellow to dark-blue to light-green
+   local Cscale=0.9+z*0.9
+   local Red = 0.5+0.5*cos(2*3.14*Cscale)
+   local Green = 0.5+0.5*cos(2*3.14*(Cscale+0.25))
+   local Blue = 0.5+0.5*cos(2*3.14*(Cscale+0.5))
+   return rgb(Red,Green,Blue)
+end sub
+
+sub palette_PolarAngle z  ! expected: z ranges from 0 to 1 
+! a custom palette used in the polar angle plots, ranging from red to green to red again
+   local Cscale=2*z-1
+   local Red = 0.5-0.5*sin(3.14*(Cscale+0.5))
+   local Green = 0.5+0.5*cos(3.14*Cscale)
+   local Blue = 0.5+0.5*sin(3.14*Cscale)
+   return rgb(Red,Green,Blue)
+end sub
+
+sub palette_blue_purple_red_green2 z
+   ! a custom palette ranging from blue over purple to red
+   local x=2*z
+      !return rgb((1-x)*(1-x),2*x*(3/2-x),2*(x-1/2)*(2-x))
+      return rgb(2*(x-1/2)*(2-x),2*x*(3/2-x),(1-x)*(1-x))
+end sub
+
+sub palette_blue_purple_red_green z
+   ! a custom palette ranging from blue over purple to red
+   local x=2*z
+   If (x<1) then
+      return rgb(x,0,1-x)
+   Else
+      return rgb(2-x,0,x-1)
+   End if
+end sub
+
+
+
+! see https://en.wikipedia.org/wiki/HSL_and_HSV
+! luminosity   Y = 0.2126 R + 0.7152 G + 0.0722 B 
+!compute hue from RGB. To place red at 0°, green at 120°, and blue at 240°,
+! {\displaystyle h_{rgb}=\mathrm {atan2} \left({\sqrt {3}}\cdot (G-B),2\cdot R-G-B\right).} 
+!\tan(h_{rgb})={\frac {{\sqrt {3}}\cdot (G-B)}{2\cdot R-G-B}}.

@@ -1,0 +1,47 @@
+size  29.7 21.0   ! A4
+set font pstr
+set hei 1.2
+set lwidth 0.05
+
+dir$='../runs/plot/'
+if(nargs() > 0 ) then 
+    dir$=arg$(1)
+end if
+datfile$=dir$+"sh_Current.dat"
+
+amove 3 4
+begin graph
+  size 25 16
+  vscale 1
+  hscale 1
+  xaxis  min 0 max 20  dticks  5 dsubticks 1 !nolast
+  !yaxis log min 0.1 ! min 0 max 4e-4   hei .9 
+  yaxis  ! min 0 max 4e-4   hei .9 
+  xticks length .5
+  yticks length .5
+  xtitle "D to ground [km]"
+  data datfile$ d11=c1,c4   
+  d11 lstyle 0 lwidth .1  color green
+  data datfile$ d12=c1,c5   
+  d12 lstyle 3 lwidth .1 color red
+  data datfile$ d13=c1,c6   
+  let d3=d13*10
+  d3 lstyle 2 lwidth .1 color blue
+  ! let d99 = 0 from 0.0 to 20 step 1
+  ! d99 lstyle 0 lwidth 0.02 color black
+  end graph
+begin key
+    nobox
+    position tr
+    marker dot msize 1 text "J_x " color green
+    marker dot msize 1 text "J_y " color red
+    marker dot msize 1 text "J_Q\times 10 " color blue
+end key
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+translate -0.2 -0.2
+include note.gle
+@note "sh-current"
+translate 0 2
+

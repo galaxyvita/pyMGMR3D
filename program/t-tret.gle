@@ -1,0 +1,169 @@
+size  30.7 21.5   ! A4
+set font pstr
+set hei 1.2
+set lwidth 0.05
+
+dir$='../runs/plot/'
+if(nargs() > 0 ) then 
+    dir$=arg$(1)
+end if
+datfile$=dir$+"t_tret.dat"
+datshcurr$=dir$+"sh_Current.dat"
+
+fopen datfile$ inchan read
+freadln inchan AtmStep$ d2$ d3$ d4$ d5$ d6$ d7$ d8$ d9$ d10$ d11$ d12$ d13$ d14$ d15$ d16$  d17$ d18$ d19$ d20$ d21$ d22$
+
+!include "MaxMin.gle"
+
+MaxAtm=20
+
+sub halfmaxx ds$ 
+  maxval = dataxvalue(ds$,1)
+  ymax = 10.
+  local xval 
+  local imax = 1
+  local ih1 = 1
+  local ih2 = ndata(ds$)
+  for i = 2 to ndata(ds$)
+   xval = dataxvalue(ds$,i)
+   If (xval > maxval) then
+    maxval = xval
+    imax = i
+   End If
+  next i
+  val = maxval/2
+  for i = 1 to imax 
+    If (dataxvalue(ds$,i) < val ) then
+        ih1 = i
+    End if
+  next i
+  for i = imax to ndata(ds$)
+    If (dataxvalue(ds$,i) > val ) then
+        ih2 = i
+    End if
+  next i
+  ymax = datayvalue(ds$,imax)
+  yh1max = datayvalue(ds$,ih1)
+  yh2max = datayvalue(ds$,ih2)
+  return ymax 
+  return yh1max 
+  return yh2max 
+  return maxval
+end sub
+
+sub topdownx ds$ valy 
+  for i = 1 to ndata(ds$) ! find y index
+    If (datayvalue(ds$,i) < valy ) then
+        ih = i
+    End if
+  next i
+  amove xg(dataxvalue(ds$,ih)) yg(datayvalue(ds$,ih))
+  aline xg(dataxvalue(ds$,ih)) yg(0)
+end sub
+
+amove 4 4
+begin graph
+  size 25 16
+  vscale 1
+  hscale 1
+  data datshcurr$ d90=c4,c1   d92=c6,c1
+  halfmaxx(d92)
+  Qmax = maxval
+  !
+  halfmaxx(d90)
+  Jmax = maxval
+  DJmax = ymax
+  D1Jmax = yh1max 
+  D2Jmax = yh2max 
+
+  xaxis min  -2*QMax max 4*QMax  ! nticks  5 !dsubticks 1 !nolast
+  xlabels off
+  xticks off
+  yaxis  min 0 max MaxAtm !   hei .9 
+  ylabels off
+  !write shmax
+  x2axis min  -2*JMax max 4*JMax  ! nticks  5 !dsubticks 1 !nolast
+  x2labels off
+  x2ticks off
+  d90 x2axis yaxis lstyle 0 lwidth .1 color black
+  d92 xaxis yaxis lstyle 0 lwidth .1 color pink
+   let d98 = DJmax from -2*JMax to 1.2*JMax 
+   d98 x2axis yaxis lstyle 0 lwidth 0.02 color black
+   let d97 = D1Jmax from -2*JMax to 1*JMax  ! Half max point
+   d97 x2axis yaxis lstyle 2 lwidth 0.02 color black
+   let d96 = D2Jmax from -2*JMax to 1*JMax ! Half max point
+   d96 x2axis yaxis lstyle 2 lwidth 0.02 color black
+end graph
+begin key
+    nobox
+    position tl
+    marker dot msize 1 text "J_x" color black
+    marker dot msize 1 text "Q" color pink
+end key
+
+
+amove 4 4
+begin graph
+  size 25 16
+  vscale 1
+  hscale 1
+  xaxis  min 0 max 30  dticks  5 dsubticks 1 !nolast
+  !yaxis log min 0.1 ! min 0 max 4e-4   hei .9 
+  yaxis  min 0 max MaxAtm !   hei .9 
+  xticks length .5
+  yticks length .5
+  xtitle "t_{antenna} [ns]"
+  ytitle "Distance to core [km]"
+  data datfile$ d2=c4,c1 d3=c6,c1 d4=c8,c1 d5=c10,c1 d6=c12,c1 d7=c14,c1 d8=c16,c1 d9=c18,c1 d10=c20,c1 d11=c22,c1 ignore 1
+  d2 lstyle 0 lwidth .1  color orange
+  d3 lstyle 0 lwidth .1 color red
+  d4 lstyle 0 lwidth .1 color magenta
+  d5 lstyle 0 lwidth .1 color blue
+  d6 lstyle 0 lwidth .1 color green
+  d7 lstyle 3 lwidth .1  color orange
+  d8 lstyle 3 lwidth .1 color red
+  d9 lstyle 3 lwidth .1 color magenta ! key test
+  d10 lstyle 3 lwidth .1 color blue
+  d11 lstyle 3 lwidth .1 color green
+!   let d98 = 8.31 from 0.0 to 18 step 1
+!   d98 lstyle 0 lwidth 0.02 color black
+!   let d97 = 4.8 from 0.0 to 15 step 1 ! Half max point
+!   !let d97 = 5.5 from 0.0 to 5 step 1 ! max derivative point
+!   d97 lstyle 3 lwidth 0.02 color black
+!   let d96 = 12.5 from 0.0 to 15 step 1 ! Half max point
+!   !let d96 = 11.5 from 0.0 to 5 step 1 ! max derivative point
+!   d96 lstyle 3 lwidth 0.02 color black
+  ! let d99 = 0 from 0.0 to 20 step 1
+  ! d99 lstyle 0 lwidth 0.02 color black
+  !d90 x2axis y2axis lstyle 0 lwidth .1 color black
+end graph
+begin key
+    nobox
+    position tr
+    marker dot msize 1 text d4$ color orange
+    marker dot msize 1 text d6$ color red
+    marker dot msize 1 text d8$ color magenta
+    marker dot msize 1 text d10$ color blue
+    marker dot msize 1 text d12$ color green
+    separator
+    marker circle msize 1 text d14$ color orange
+    marker circle msize 1 text d16$ color red
+    marker circle msize 1 text d18$ color magenta
+    marker circle msize 1 text d20$ color blue
+    marker circle msize 1 text d22$ color green
+end key
+set color magenta
+set lwidth 0.04 
+set lstyle 1
+topdownx d4 DJmax
+set lstyle 2
+topdownx d4 D1Jmax
+topdownx d4 D2Jmax
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+translate -0.2 -0.2
+include note.gle
+@note "t-tret"
+translate 0 2
+
