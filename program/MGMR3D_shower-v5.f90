@@ -3,6 +3,8 @@
 ! v2: improved calculation of penetration depth for large zenith angles.
 ! v3: Changed rho dependence in CX and TC to improve norm factor
     use RFootPars, only : rh0,X_0,lamx,X_max,lam_tc,lam_100,XDepAlpha,J0t,J0Q, IntegrateCurrent
+    use RFootPars, only : X_02, lamx2, X_max2, Energy_sh2
+!            NPart=NPart+Energy_sh2*( (X_rh-X_02)/(X_max2-X_02))**((X_max2-X_02)/lamx2) * exp((X_max2-X_rh)/lamx2) !&
     use RFootPars, only : R_0,L_0, RL_param, MoliereRadius
     use RFootPars, only : alpha_frc0, alpha_vB, u0, F_over_beta, a_ChX, D_ESmooth, AlternativeSmooth
     use RFootPars, only : step,stpv, N_frc,h_frc,Force,alpha_frc,N_step_max, PenFacHeight
@@ -368,6 +370,10 @@
          endif
         Else
          NPart=Energy_sh*( (X_rh-X_0)/(X_max-X_0))**((X_max-X_0)/lamx) * exp((X_max-X_rh)/lamx) !&
+         If(Energy_sh2.gt.0.) Then
+            NPart=NPart+Energy_sh2*( (X_rh-X_02)/(X_max2-X_02))**((X_max2-X_02)/lamx2) * exp((X_max2-X_rh)/lamx2) !&
+            ! Note that some shower-age type factors are calculated from the main X_Max
+         EndIf
          !   * exp(AirDensity(iXmx)/AirDensity(i))     !v3c
         Endif
         NPart=NPart*(1. +NP_F*(AirDensity(1)/AirDensity(i))*(Force_x(i)**2 + Force_y(i)**2)/(100.*Force0*Force0)) ! to account for particle production with a strong force
@@ -443,6 +449,10 @@
         !write(2,"('Footprint shifted by (x,y)=(',f9.3,',',f9.3,') equivalent to (E,N)=(',f9.3,',',f9.3,') [m]')") &
         !    FShift_x,FShift_y
     endif
+    If(Energy_sh2.gt.0.) Then
+        write(2,"(1x,'X_max2=',f7.2,', X_02=',f7.2,', lamx2=',f7.3,', E2=',1pE9.2, '[GeV]')") &
+            X_max2, X_02, lamx2, Energy_sh2
+    EndIf
     write(2,"(A,F6.2,A,F6.1,A)") 'Charge excess max@ ',iQmx*AtmHei_step/1000.,'[km]=', PenDepth(iQmx),'[g/cm^2]'
     write(2,"(1x,'Curr_Xmax=',f7.2,', D=',f7.3,'[km], H=',f7.3,'[km], F_max=',F5.3,' x 100 keV/m, cos_Zen=',f4.2, &
         ' Peak current in x and y:',2g12.4)") &
