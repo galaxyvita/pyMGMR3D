@@ -7,6 +7,7 @@
     use RFootPars, only : line,  h_frcL,ForceL,alpha_frcL,D_ESmooth,N_line_max,AParMnm, AlternativeSmooth
     use RFootPars, only : stpv !,  h_frc_tr,Frc_tr,alpha_frc_tr
     use RFootPars, only : rh0,X_0,lamx,X_max,lam_tc,lam_100,XDepAlpha,J0t,J0Q, alpha_vB, u0, F_over_beta, a_ChX
+    use RFootPars, only : X_02, lamx2, X_max2, Energy_sh2
     use RFootPars, only : NTo, MoliereRadius, IntegrateCurrent, PancakeIncField
     use RFootPars, only : RnrmA, RnrmB, FShift_x,FShift_y, test, SelectFh, Intensity_Weight, vDrift2, F_lim
     use RFootPars, only : nu_min, nu_max, padding, SamplingTime_dwn, StParRange
@@ -32,11 +33,13 @@
         SelectFh, lam_tc ,lam_100, XDepAlpha, IntegrateCurrent, PancakeIncField,  &
         ObsDist_dim, ObsDist_Step,  tTrace_step, lamx, u0, a_ChX, J0Q, padding, D_ESmooth, AlternativeSmooth, u0, &
         F_lim, nu_min,nu_max, SamplingTime, StParRange, Voltages, rh0,MoliereRadius, J0t, GroundLevel, X_0, X_max, &
-        RnrmA, RnrmB, Zen_sh, Azi_sh, Zen_B, Azi_B, Intensity_Weight, NoisePower, Energy_sh, RL_param, R_0,L_0, Fit_StI
+        RnrmA, RnrmB, Zen_sh, Azi_sh, Zen_B, Azi_B, Intensity_Weight, NoisePower, Energy_sh, RL_param, R_0,L_0, Fit_StI, &
+        X_02, lamx2, X_max2, Energy_sh2
     !
     Test=.false.
     AtmHei_dim=2000d0 ; AtmHei_step=10.d0 ! [m]
     Energy_sh=1.d9  ! energy in [GeV]
+    Energy_sh2=-1.
     ObsDist_dim=42 ; ObsDist_Step=10.
     !    tTrace_Offset=60 ; NTo=150 ; tTrace_step=0.005d0
     tTrace_Offset=10
