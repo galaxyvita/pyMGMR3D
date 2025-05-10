@@ -21,8 +21,9 @@ echo 'AntennaFunction=' ${AntennaFun}
 cd ${ProgDir}
 make -f "MGMR3D_fit-makefile-v5.mak"
 cd ${RunFolder}
-${ProgDir}/MGMR3D_fit-v5 <TestCase.in
-# read -rsp $'Press enter to continue...\n'
+
+${ProgDir}/MGMR3D_fit-v5 <TestCase2.in
+
  cd plot
 #gle -d pdf PulseNuall.gle
 #gle -d pdf pulseNud.GLE
