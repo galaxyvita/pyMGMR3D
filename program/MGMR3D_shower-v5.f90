@@ -24,7 +24,7 @@
     real(dp) :: Force_x(0:AtmHei_dim),Force_y(0:AtmHei_dim),height, alpha_E, Force0, sin_alpha,cos_alpha
     Real(dp) :: Height_p, z_p, Height_h
     real(dp) :: RPenDepth(0:AtmHei_dim+1)
-    real(dp) :: z,s,nu,a,b,c,ddd,X_rh,dfha,dfhl,fh,lam,r1,r2,dh ,D1,D2,NPart,ux,uy,BoF
+    real(dp) :: z,s,nu,a,b,c,ddd,X_rh,dfha,dfhl,fh,lam,r1,r2,dh ,D1,D2, NPart,NPart2, ux,uy,BoF
     !real(dp) :: Eoff,Noff,vBE,vBN,vBU,vvBE,vvBN,vvBU,BoF
     Real(dp), save :: Xb_0=50, Xc_0=50     ! used in the parametrization of charge excess and drift velocity
     real(dp), parameter :: X_EM=36.7d0
@@ -371,7 +371,10 @@
         Else
          NPart=Energy_sh*( (X_rh-X_0)/(X_max-X_0))**((X_max-X_0)/lamx) * exp((X_max-X_rh)/lamx) !&
          If(Energy_sh2.gt.0.) Then
-            NPart=NPart+Energy_sh2*( (X_rh-X_02)/(X_max2-X_02))**((X_max2-X_02)/lamx2) * exp((X_max2-X_rh)/lamx2) !&
+            NPart2=Energy_sh2*( (X_rh-X_02)/(X_max2-X_02))**((X_max2-X_02)/lamx2) * exp((X_max2-X_rh)/lamx2) !&
+            write(2,*) 'Shower:', i,X_rh, Npart, Npart2
+            If(NPart2.lt.0.) NPart2=0.
+            Npart=Npart+Npart2
             ! Note that some shower-age type factors are calculated from the main X_Max
          EndIf
          !   * exp(AirDensity(iXmx)/AirDensity(i))     !v3c
