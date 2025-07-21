@@ -2,15 +2,10 @@
 set -e
 #set source = fftpack5.1d  in  ${FFTPackBase}
 # Make sure the folder  ${FFTPackBase}/bin/  exists
-#source  ${LL_Base}/ShortCuts.sh
-   #FFTPackBase="/Users/users/scholten/NumLib"  # subfolder /FFTPACK should contain the FFT library, double precision
-   #export LL_Base="/Users/users/scholten/LOFLI"
-   #export LL_bin=${LL_Base}/bin          # folder containing f90split.make
-   #export LL_src=${LL_Base}/FORTRANsrc   # folder containing f90split_OS.f90
-   FFTPackBase="$PWD/../Library"
+   FFTPackBase="$PWD/../Library" # subfolder /FFTPACK should contain the FFT library, double precision
    export LL_Base="$PWD/../Library"
-   export LL_bin=${LL_Base}/bin
-   export LL_src=${LL_Base}
+   export LL_bin=${LL_Base}/bin # folder containing f90split.make
+   export LL_src=${LL_Base}  # folder containing f90split_OS.f90
 
 cd ${LL_Base}
 make -f f90split.make

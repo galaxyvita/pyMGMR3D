@@ -141,7 +141,6 @@ def add_observers_to_hdf5(hdf5_path, fitresult_path):
 
         for idx, row in df.iterrows():
             ant_grp = fit_grp.create_group(f"antenna_{idx:03d}")
-            #ant_grp = fit_grp.create_group(f"pos_{row['x']}_{row['y']}")
 
             # Store antenna metadata as attributes
             for attr in ["R", "phi", "x", "y", "Psi"]:
@@ -228,17 +227,19 @@ def add_timetraces_to_observers(hdf5_path, trace_dir):
                 print(f"Skipping unexpected file format: {trace_file.name}")
                 continue
 
-            x_id, y_id = match.groups()
-            antenna_name = f"pos_{x_id}_{y_id}"
-            #ant_grp = observer_grp.require_group(antenna_name)
+            d, theta = match.groups()
+            antenna_name = f"pos_{d}_{theta}"
+            print(f'antenna_name: {antenna_name}')
 
             df = pd.read_csv(trace_file, sep=r'\s*,\s*', engine='python', comment='!', header=None)
             df.columns = ["t_us", "Re_Ex", "Im_Ex", "Re_Ey", "Im_Ey"]
 
             data = df.to_numpy(dtype='f8')
-            #dset = ant_grp.create_dataset("timetrace", data=data)
             dset = observer_grp.create_dataset(f"{antenna_name}", data=data)
-            dset.attrs['position'] = np.array([x_id, y_id], dtype=float)
+            x, y = np.cos(np.deg2rad(float(theta))) * int(d), np.sin(np.deg2rad(float(theta))) * int(d)
+            print(f'd = {int(d)} and theta = {int(theta)}')
+            print(f'x = {x} and y = {y}')
+            dset.attrs['position'] = np.array([x, y], dtype=float)
             dset.attrs["columns"] = np.array(df.columns, dtype='S')
             dset.attrs["units"] = np.array(["us", "V/m", "V/m", "V/m", "V/m"], dtype='S')
 
