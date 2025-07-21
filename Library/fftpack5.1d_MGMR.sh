@@ -7,8 +7,8 @@ set -e
    #export LL_Base="/Users/users/scholten/LOFLI"
    #export LL_bin=${LL_Base}/bin          # folder containing f90split.make
    #export LL_src=${LL_Base}/FORTRANsrc   # folder containing f90split_OS.f90
-   FFTPackBase="$HOME/Github/MGMR/Library"
-   export LL_Base="$HOME/Github/MGMR/Library"
+   FFTPackBase="$PWD/../Library"
+   export LL_Base="$PWD/../Library"
    export LL_bin=${LL_Base}/bin
    export LL_src=${LL_Base}
 
