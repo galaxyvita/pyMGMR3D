@@ -1,10 +1,11 @@
 FC = gfortran
-#FCFLAGS = -ggdb -fbounds-check -fbacktrace -ffpe-trap=zero,overflow,underflow,invalid -Wuninitialized -finit-real=snan
 FCFLAGS = -ggdb -fbounds-check -fbacktrace -ffpe-trap=zero,overflow,underflow,invalid -finit-real=inf
-#FCFLAGS =
 
-LL_Base=~/Github/MGMR/LightningPros/
-Lib_Base=~/Github/MGMR/Library/bin/
+LL_Base = ../LightningPros
+Lib_Base = ../Library/bin
+
+#LL_Base=~/Github/pyMGMR3D/LightningPros/
+#Lib_Base=~/Github/pyMGMR3D/Library/bin/
 F_NLSOL = $(LL_Base)
 F_AntFie = $(LL_Base)
 
@@ -31,5 +32,4 @@ $(OBJECTS): $(SOURCES) $(DEPENDENCIES)
 	$(FC) $(FCFLAGS) -c $(SOURCES)
 
 clean:
-	del *.mod
-	del *.o
+	rm -f *.mod *.o $(EXECUTE)
