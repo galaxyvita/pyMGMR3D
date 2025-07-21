@@ -229,7 +229,6 @@ def add_timetraces_to_observers(hdf5_path, trace_dir):
 
             d, theta = match.groups()
             antenna_name = f"pos_{d}_{theta}"
-            print(f'antenna_name: {antenna_name}')
 
             df = pd.read_csv(trace_file, sep=r'\s*,\s*', engine='python', comment='!', header=None)
             df.columns = ["t_us", "Re_Ex", "Im_Ex", "Re_Ey", "Im_Ey"]
@@ -237,8 +236,6 @@ def add_timetraces_to_observers(hdf5_path, trace_dir):
             data = df.to_numpy(dtype='f8')
             dset = observer_grp.create_dataset(f"{antenna_name}", data=data)
             x, y = np.cos(np.deg2rad(float(theta))) * int(d), np.sin(np.deg2rad(float(theta))) * int(d)
-            print(f'd = {int(d)} and theta = {int(theta)}')
-            print(f'x = {x} and y = {y}')
             dset.attrs['position'] = np.array([x, y], dtype=float)
             dset.attrs["columns"] = np.array(df.columns, dtype='S')
             dset.attrs["units"] = np.array(["us", "V/m", "V/m", "V/m", "V/m"], dtype='S')
