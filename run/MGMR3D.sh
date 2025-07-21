@@ -87,7 +87,7 @@ fi
 # Change back to the original run folder.
 # If changing directory fails, exit the script.
 cd "${PROG_DIR}" || { echo "Error: Could not change to program directory ${PROG_DIR}. Exiting."; exit 1; }
-make -f "MGMR3D_fit-makefile-v5.mak" || { echo "Error: MGMR compilation failed. Exiting."; exit 1; }
+make -f "MGMR3D_fit-makefile-v5.make" || { echo "Error: MGMR compilation failed. Exiting."; exit 1; }
 cd "${RUN_FOLDER}" || { echo "Error: Could not change back to run directory ${RUN_FOLDER}. Exiting."; exit 1; }
 
 # --- Run simulation ---
