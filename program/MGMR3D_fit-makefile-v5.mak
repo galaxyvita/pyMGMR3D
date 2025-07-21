@@ -3,11 +3,10 @@ FC = gfortran
 FCFLAGS = -ggdb -fbounds-check -fbacktrace -ffpe-trap=zero,overflow,underflow,invalid -finit-real=inf
 #FCFLAGS =
 
-LL_Base=/Users/users/scholten/LOFLI
-Lib_Base=/Users/users/scholten/NumLib/bin
-F_NLSOL = $(LL_Base)/FORTRANsrc
-F_AntFie = $(LL_Base)/FORTRANsrc
-
+LL_Base=~/Github/MGMR/LightningPros/
+Lib_Base=~/Github/MGMR/Library/bin/
+F_NLSOL = $(LL_Base)
+F_AntFie = $(LL_Base)
 
 EXECUTE = MGMR3D_fit-v5
 DEPENDENCIES = MGMR3D-v4.f90 MGMR3D_Fit_RadioFoot-v4.f90 MGMR3D_shower-v5.f90 MGMR3D_analyse-v5.f90 MGMR3D_SetParams-v4.f90 MGMR3D_RFootPars-v5.f90 \
@@ -34,7 +33,3 @@ $(OBJECTS): $(SOURCES) $(DEPENDENCIES)
 clean:
 	del *.mod
 	del *.o
-
-#exit
-
-#set "AntennaFun=C:\Users\Olaf Scholten\Documents\AstroPhys\Lightning\Imaging\LMA\LMA2019\AntenFunct\"

@@ -156,7 +156,7 @@ def plot_stokes_parameters(data_dir, out_path):
     axs[1, 2].axis('off')  # Hide unused subplot
     fig.suptitle("Stokes Parameters Map", fontsize=12)
     plt.tight_layout()
-    fig.savefig(f"{out_path}FitStokes-map.jpg")
+    fig.savefig(f"{out_path}/FitStokes-map.jpg")
     plt.show()
 
 if __name__ == "__main__":

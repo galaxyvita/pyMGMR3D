@@ -221,7 +221,6 @@ def add_timetraces_to_observers(hdf5_path, trace_dir):
 
     with h5py.File(hdf5_path, "a") as f:
         observer_grp = f.require_group("observers")
-        print(trace_dir)
         for trace_file in trace_dir.glob("gridttrace-*.csv"):
 
             match = pattern.match(trace_file.name)
@@ -239,6 +238,7 @@ def add_timetraces_to_observers(hdf5_path, trace_dir):
             data = df.to_numpy(dtype='f8')
             #dset = ant_grp.create_dataset("timetrace", data=data)
             dset = observer_grp.create_dataset(f"{antenna_name}", data=data)
+            dset.attrs['position'] = np.array([x_id, y_id], dtype=float)
             dset.attrs["columns"] = np.array(df.columns, dtype='S')
             dset.attrs["units"] = np.array(["us", "V/m", "V/m", "V/m", "V/m"], dtype='S')
 
@@ -268,12 +268,6 @@ if __name__ == "__main__":
     if not trace_dir.exists():
         print(f"Error: File '{trace_dir}' not found.")
         sys.exit(1)
-
-    print(f"hdf5_path: {hdf5_path}")
-    print(f"file_path_inputs: {file_path_inputs}")
-    print(f"fitresult_path: {fitresult_path}")
-    print(f"sh_current_path: {sh_current_path}")
-    print(f"trace_dir: {trace_dir}")
         
     initialize_mgmr_hdf5(hdf5_path)
     

@@ -4,13 +4,13 @@
 # Checks if at least one argument (the input file) is provided.
 # If not, it prints a usage message and exits with an error.
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 <inputfile.in> [--plot] [--no-hdf5] [--plot-dir <directory>]"
+    echo "Usage: $0 <inputfile.in> [--no-hdf5] [--plot <plot_output_directory>] [--result-dir <final_results_directory>]"
     exit 1
 fi
 
 # Assign the first argument as the input file.
-INPUT_FILE=$1
 # Shift arguments so that $1 now refers to the next argument (flags).
+INPUT_FILE=$1
 shift
 
 # Extract the base name of the input file (without extension).
@@ -21,14 +21,13 @@ RUN_FOLDER=$(pwd)
 PROG_DIR=$(dirname "$RUN_FOLDER")/program
 
 # Initialize flags for plotting and HDF5 conversion as enabled by default.
-# Initialize plot directory.
-# Initialize plot directory.
-# Flag to track if a custom plot directory was specified.
-# Initialize HDF5 filename, it will be the same as the input file with .hdf5 extension.
+# Initialize the directory where plots will be directly saved. This is the output for --plot.
+# Initialize the target directory for moving the temporary 'plot' folder (results).
+# Initialize HDF5 filename. By default, it will be the same as the input file with .hdf5 extension.
 PLOT_ENABLED=false
 HDF5_ENABLED=true
-PLOT_DIR=""
-CUSTOM_PLOT_DIR=false
+PLOT_OUTPUT_DIR=""
+RESULT_DIR=""
 HDF5_FILENAME="${RUN_FOLDER}/${BASENAME}.hdf5"
 
 # --- Parse flags ---
@@ -37,66 +36,77 @@ while [[ $# -gt 0 ]]; do
     case $1 in
         --plot)
             PLOT_ENABLED=true
-            shift
+            if [ -z "$2" ] || [[ "$2" == --* ]]; then
+                echo "Error: --plot requires a directory argument."
+                exit 1
+            fi
+            PLOT_OUTPUT_DIR=$2
+            shift 2
             ;;
-        --hdf5)
+        --no-hdf5)
             HDF5_ENABLED=false
             shift
             ;;
-        --plot-dir)
-            PLOT_DIR=$2
-            CUSTOM_PLOT_DIR=true
+        --result-dir)
+            if [ -z "$2" ] || [[ "$2" == --* ]]; then
+                echo "Error: --result-dir requires a directory argument."
+                exit 1
+            fi
+            RESULT_DIR=$2
             shift 2
             ;;
         *)
+            echo "Warning: Unrecognized argument '$1'. Ignoring."
             shift
             ;;
     esac
 done
 
-# Set the default plot directory to the run folder if no custom directory was specified.
-if [ -z "$PLOT_DIR" ]; then
-    PLOT_DIR="${RUN_FOLDER}"
+# Create the plot output directory if plotting is enabled and it doesn't exist.
+if $PLOT_ENABLED && [ -n "$PLOT_OUTPUT_DIR" ]; then
+    mkdir -p "$PLOT_OUTPUT_DIR"
 fi
-
-# Create the plot directory if it doesn't already exist.
-mkdir -p "$PLOT_DIR"
 
 # Print important paths for user information.
 echo "Program folder = ${PROG_DIR}"
 echo "Run folder     = ${RUN_FOLDER}"
 echo "Input file     = ${INPUT_FILE}"
-echo "Plot output to = ${PLOT_DIR}"
+if $PLOT_ENABLED; then
+    echo "Plot output to = ${PLOT_OUTPUT_DIR}"
+fi
 echo "HDF5 output to = ${HDF5_FILENAME}"
+if [ -n "$RESULT_DIR" ]; then
+    echo "Temporary 'plot' folder will be moved to = ${RESULT_DIR}/${BASENAME}_results"
+fi
 
 # --- Compile MGMR ---
 # Change directory to the program directory.
-# If changing directory fails.
+# If changing directory fails, exit the script.
 # Compile the MGMR program using the specified makefile.
 # If compilation fails, exit the script.
 # Change back to the original run folder.
 # If changing directory fails, exit the script.
-cd "${PROG_DIR}" || exit 1
-make -f "MGMR3D_fit-makefile-v5.mak" || exit 1
-cd "${RUN_FOLDER}" || exit 1
+cd "${PROG_DIR}" || { echo "Error: Could not change to program directory ${PROG_DIR}. Exiting."; exit 1; }
+make -f "MGMR3D_fit-makefile-v5.mak" || { echo "Error: MGMR compilation failed. Exiting."; exit 1; }
+cd "${RUN_FOLDER}" || { echo "Error: Could not change back to run directory ${RUN_FOLDER}. Exiting."; exit 1; }
 
 # --- Run simulation ---
 # Create a temporary 'plot' directory within the run folder for intermediate output.
 # Execute the MGMR program, feeding it the input file's content.
-mkdir plot
+mkdir -p "${RUN_FOLDER}/plot"
 "${PROG_DIR}/MGMR3D_fit-v5" < "$INPUT_FILE"
 
 # --- Plotting with GLE and Python ---
 # Change directory to the temporary 'plot' folder to handle output files.
-cd plot || exit 1
+cd "${RUN_FOLDER}/plot" || { echo "Error: Could not change to temporary plot directory. Exiting."; exit 1; }
 
 # Check if plotting is enabled.
 if $PLOT_ENABLED; then
     # Check if GLE (Graphics Layout Engine) command is available.
     if command -v gle &> /dev/null; then
-        gle -d pdf -o "${PLOT_DIR}/${BASENAME}_FitStokes.pdf" "${PROG_DIR}/FitStokes.GLE" "${RUN_FOLDER}/plot/FitResult"
-        gle -d jpg -r 200 -o "${PLOT_DIR}/${BASENAME}_FitStokes-map.jpg" "${PROG_DIR}/FitStokes-map.GLE" "${RUN_FOLDER}/plot/"
-        gle -d pdf -o "${PLOT_DIR}/${BASENAME}_sh-current.pdf" "${PROG_DIR}/sh-current.GLE" "${RUN_FOLDER}/plot/"
+        gle -d pdf -o "${PLOT_OUTPUT_DIR}/${BASENAME}_FitStokes.pdf" "${PROG_DIR}/FitStokes.GLE" "${RUN_FOLDER}/plot/FitResult"
+        gle -d jpg -r 200 -o "${PLOT_OUTPUT_DIR}/${BASENAME}_FitStokes-map.jpg" "${PROG_DIR}/FitStokes-map.GLE" "${RUN_FOLDER}/plot/"
+        gle -d pdf -o "${PLOT_OUTPUT_DIR}/${BASENAME}_sh-current.pdf" "${PROG_DIR}/sh-current.GLE" "${RUN_FOLDER}/plot/"
     else
         echo "GLE not found. Skipping GLE plots."
     fi
@@ -112,9 +122,9 @@ except ImportError as e:
     exit(1)
 EOF
         if [ $? -eq 0 ]; then
-            python3 "${PROG_DIR}/FitStokes.py" "${RUN_FOLDER}/plot/FitResult.dat" "${PLOT_DIR}"
-            python3 "${PROG_DIR}/FitStokes-map.py" "${RUN_FOLDER}/plot/" "${PLOT_DIR}"
-            python3 "${PROG_DIR}/sh-current.py" "${RUN_FOLDER}/plot/" "${PLOT_DIR}"
+            python3 "${PROG_DIR}/FitStokes.py" "${RUN_FOLDER}/plot/FitResult.dat" "${PLOT_OUTPUT_DIR}"
+            python3 "${PROG_DIR}/FitStokes-map.py" "${RUN_FOLDER}/plot/" "${PLOT_OUTPUT_DIR}"
+            python3 "${PROG_DIR}/sh-current.py" "${RUN_FOLDER}/plot/" "${PLOT_OUTPUT_DIR}"
         else
             echo "Skipping Python plotting due to missing libraries."
         fi
@@ -148,16 +158,20 @@ EOF
     fi
 fi
 
-# --- Cleanup only if no custom output ---
-# Change back to the original run folder.
-cd "${RUN_FOLDER}" || exit 1
-# Remove the temporary 'plot' directory ONLY if a custom plot directory was NOT specified.
-# This prevents deleting desired output if the user explicitly set a plot-dir.
-if ! $CUSTOM_PLOT_DIR; then
-    rm -r plot
+# --- Handle Result Directory and Cleanup ---
+# Change back to the original run folder to ensure correct path for mv/rm.
+cd "${RUN_FOLDER}" || { echo "Error: Could not change back to run directory ${RUN_FOLDER}. Exiting."; exit 1; }
+
+# If --result-dir was provided, move the 'plot' directory.
+if [ -n "$RESULT_DIR" ]; then
+    echo "Moving temporary results folder to: ${RESULT_DIR}/${BASENAME}_results"
+    mkdir -p "$RESULT_DIR"
+    mv "${RUN_FOLDER}/plot" "${RESULT_DIR}/${BASENAME}_results" || \
+        { echo "Error: Failed to move temporary 'plot' directory to ${RESULT_DIR}/${BASENAME}_results. Please check permissions or path."; exit 1; }
+else
+    echo "Cleaning up temporary 'plot' directory."
+    rm -r "${RUN_FOLDER}/plot"
 fi
 
-# Inform the user that the script has completed.
-# Exit with a success status.
 echo "Run complete."
 exit 0

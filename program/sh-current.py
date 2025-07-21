@@ -41,7 +41,7 @@ def plot_sh_current(data_dir, out_path):
     ax.legend(loc="upper right", frameon=False)
 
     plt.tight_layout()
-    fig.savefig(f"{out_path}sh_Current.jpg")
+    fig.savefig(f"{out_path}/sh_Current.jpg")
     plt.show()
 
 if __name__ == "__main__":

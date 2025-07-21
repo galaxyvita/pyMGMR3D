@@ -5,7 +5,7 @@
 # gfortran -c ~/NumLib/LSQ/nl2sol.f90 
 # cp nl2sol.o ~/NumLib/LSQ/nl2sol.o
 
-   export MG_Base="/Users/users/scholten/MGMR3D"
+export MG_Base="~/MGMR/"
 #ProgDir="~/../olaf/"
 FFD="${MG_Base}/Program"
 cd "${FFD}"
