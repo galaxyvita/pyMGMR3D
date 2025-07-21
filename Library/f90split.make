@@ -13,3 +13,5 @@ ${LL_bin}/f90split : ${LL_src}/f90split_OS.f90
 #f90split_OS.o : ${LL_src}/f90split_OS.f90
 #	$(FC)  -c ${LL_src}/f90split_OS.f90
 
+clean:
+	rm -f *.o *.mod ${LL_bin}/f90split
