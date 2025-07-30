@@ -370,7 +370,7 @@
          endif
         Else
          NPart=Energy_sh*( (X_rh-X_0)/(X_max-X_0))**((X_max-X_0)/lamx) * exp((X_max-X_rh)/lamx) !&
-         If(Energy_sh2.gt.0.) Then
+         If(Energy_sh2.gt.0. .and. ( (X_rh-X_02)/(X_max2-X_02) .gt. 0. ) ) Then
             NPart2=Energy_sh2*( (X_rh-X_02)/(X_max2-X_02))**((X_max2-X_02)/lamx2) * exp((X_max2-X_rh)/lamx2) !&
             write(2,*) 'Shower:', i,X_rh, Npart, Npart2
             If(NPart2.lt.0.) NPart2=0.
