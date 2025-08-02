@@ -24,7 +24,7 @@
     real(dp) :: Force_x(0:AtmHei_dim),Force_y(0:AtmHei_dim),height, alpha_E, Force0, sin_alpha,cos_alpha
     Real(dp) :: Height_p, z_p, Height_h
     real(dp) :: RPenDepth(0:AtmHei_dim+1)
-    real(dp) :: z,s,nu,a,b,c,ddd,X_rh,dfha,dfhl,fh,lam,r1,r2,dh ,D1,D2, NPart,NPart2, ux,uy,BoF
+    real(dp) :: z,s,nu,a,b,c,ddd,X_rh,dfha,dfhl,fh,lam,r1,r2,dh ,D1,D2, NPart,NPart2,XmaxAve, ux,uy,BoF
     !real(dp) :: Eoff,Noff,vBE,vBN,vBU,vvBE,vvBN,vvBU,BoF
     Real(dp), save :: Xb_0=50, Xc_0=50     ! used in the parametrization of charge excess and drift velocity
     real(dp), parameter :: X_EM=36.7d0
@@ -312,26 +312,28 @@
     endif    ! skip when there is no electric field given
 !
 !stop
-    OPEN(UNIT=4,STATUS='unknown',FILE=trim(FileShCurrent)//'.dat')
-    write(2,*) 'Initialize_shower:AtmHei_dim=',AtmHei_dim, X_start, PenDepth(AtmHei_dim), PenDepth(AtmHei_dim/2)
-    write(4,"('!',7x,'z [km],',18x,'X [g/cm^2],',16x,'mean refractivity,',12x,'Ix,',23x,'Iy,',19x,'Ch Excess,',&
-        19x,'dxi,',19x,'alpha_tr,',19x,'F_x,',23x,'F_y,', &
-        ! 19x,'Ix/N,',23x,'IQ/N,', &
-        19x,'|F| [keV/m],',19x,'phi')")
-    Ix(AtmHei_dim)=0.  ; Iy(AtmHei_dim)=0.
-    if(X_max .gt.2000.) X_max=2000.
-    !if(x_0.gt. 0. .and. lamx .lt. 20.) lamx=20.
-    !if(x_0.lt. 0. .and. lamx .gt. 1.) lamx=1./lamx
-    If(HoriShwr) vDrift2=.false.
-    alpha_tr(AtmHei_dim)=1.d0
-    alpha_E=0.d0  ! increment in thickness due to the cumulative effect of E-field
-    Isqr_max=0.0
-    F_max=0.0
-    Xmax_0 = 500 ! 540/Cos_Zenith changed June 24, 2018
-    If(vDrift2) Xmax_0 = 540/Cos_Zenith   ! changed June 24, 2018 to =500
-    !write(2,*) X_max, X_0, lamx, Energy_sh
+   OPEN(UNIT=4,STATUS='unknown',FILE=trim(FileShCurrent)//'.dat')
+   write(2,*) 'Initialize_shower:AtmHei_dim=',AtmHei_dim, X_start, PenDepth(AtmHei_dim), PenDepth(AtmHei_dim/2)
+   write(4,"('!',7x,'z [km],',18x,'X [g/cm^2],',16x,'mean refractivity,',12x,'Ix,',23x,'Iy,',19x,'Ch Excess,',&
+     19x,'dxi,',19x,'alpha_tr,',19x,'F_x,',23x,'F_y,', &
+     ! 19x,'Ix/N,',23x,'IQ/N,', &
+     19x,'|F| [keV/m],',19x,'phi')")
+   Ix(AtmHei_dim)=0.  ; Iy(AtmHei_dim)=0.
+   if(X_max .gt.2000.) X_max=2000.
+   !if(x_0.gt. 0. .and. lamx .lt. 20.) lamx=20.
+   !if(x_0.lt. 0. .and. lamx .gt. 1.) lamx=1./lamx
+   If(HoriShwr) vDrift2=.false.
+   alpha_tr(AtmHei_dim)=1.d0
+   alpha_E=0.d0  ! increment in thickness due to the cumulative effect of E-field
+   Isqr_max=0.0
+   F_max=0.0
+   Xmax_0 = 500 ! 540/Cos_Zenith changed June 24, 2018
+   If(vDrift2) Xmax_0 = 540/Cos_Zenith   ! changed June 24, 2018 to =500
+   !write(2,*) X_max, X_0, lamx, Energy_sh
+   XmaxAve=X_max
+   If(Energy_sh2.gt.0.) XmaxAve=(Energy_sh*X_max+Energy_sh2*X_max2)/(Energy_sh+Energy_sh2)
    Do i=AtmHei_dim-1,0,-1    ! calculate ixmx
-      if(PenDepth(i).gt.x_max) exit
+      if(PenDepth(i).gt.XmaxAve) exit
    EndDo
    iXmx=i  ! corresponds to the index where Xmax is
    iImx=1
@@ -351,8 +353,10 @@
    NP_F=0.15 ! 0.10
    FF_tc=1.0
    write(2,*) 'NP_F=',NP_F,' in "NPart*(1. +NP_F*(rho(1)/rho(i))*(Force_x(i)**2 + ..."'
+   write(2,*) 'Shower-power:', ((X_max-X_0)/lamx), ((X_max2-X_02)/lamx2)
    flush(unit=2)
    Do i=AtmHei_dim-1,0,-1    ! calculate currents
+      npart2=0.
         X_rh=PenDepth(i)
         If(X_rh.le.X_start) then
             Ix(i)=0.
@@ -372,7 +376,10 @@
          NPart=Energy_sh*( (X_rh-X_0)/(X_max-X_0))**((X_max-X_0)/lamx) * exp((X_max-X_rh)/lamx) !&
          If(Energy_sh2.gt.0. .and. ( (X_rh-X_02)/(X_max2-X_02) .gt. 0. ) ) Then
             NPart2=Energy_sh2*( (X_rh-X_02)/(X_max2-X_02))**((X_max2-X_02)/lamx2) * exp((X_max2-X_rh)/lamx2) !&
-            write(2,*) 'Shower:', i,X_rh, Npart, Npart2
+    !        write(2,*) 'Shower:', i,X_rh, Npart, Npart2  ! , &
+    !           ( (X_rh-X_02)/(X_max2-X_02))**((X_max2-X_02)/lamx2), exp((X_max2-X_rh)/lamx2)
+    !        write(2,*) 'Showerdetail:', i,X_rh,  &
+    !           ( (X_rh-X_02)/(X_max2-X_02))**((X_max2-X_02)/lamx2), (X_rh-X_02)/(X_max2-X_02), ( (X_rh-X_0)/(X_max-X_0))
             If(NPart2.lt.0.) NPart2=0.
             Npart=Npart+Npart2
             ! Note that some shower-age type factors are calculated from the main X_Max
@@ -382,14 +389,15 @@
         NPart=NPart*(1. +NP_F*(AirDensity(1)/AirDensity(i))*(Force_x(i)**2 + Force_y(i)**2)/(100.*Force0*Force0)) ! to account for particle production with a strong force
         !----------------------------------
         ! FudgeFactor for testing different forms longitudinal function transverse current
-        FF_tc=exp(-(X_max-X_rh)**2/SigX0)  !take out, Sept 2021
+        !FF_tc=exp(-(XmaxAve-X_rh)**2/SigX0)  !take out, Sept 2021
         !--------------------
         If(vDrift2) then
-            BoF = 9.*X_rh*sqrt(X_max*Xmax_0)/((X_max + 2.*X_rh)*(X_max + 2.*X_rh)) / F_over_beta
+            BoF = 9.*X_rh*sqrt(XmaxAve*Xmax_0)/((XmaxAve + 2.*X_rh)*(XmaxAve + 2.*X_rh)) / F_over_beta
         else
             !v2!BoF = 4./((X_max-Xb_0)/(X_rh-Xb_0) + 3.)*sqrt(0.06/AirDensity(i)) / F_over_beta ! v2 Beta over force corrected for atm.
             !v3: BoF = 4./((X_max-Xb_0)/(X_rh-Xb_0) + 3.)/ F_over_beta ! v3 Beta over force corrected for atm.
-            BoF = 4./((X_max-Xb_0)/(X_rh-Xb_0) + 3.)*sqrt(AirDensity(iXmx)/AirDensity(i)) / F_over_beta ! v3b Beta over force corrected for atm.
+            BoF = 4./((XmaxAve-Xb_0)/(X_rh-Xb_0) + 3.)*sqrt(AirDensity(iXmx)/AirDensity(i)) / F_over_beta ! v3b Beta over force corrected for atm.
+            ! The problem with this BoF is that for double-humped showers the order in which sh1 and sh2 are given start to matter.
             ! see https://en.wikipedia.org/wiki/Drag_(physics) where the concept of 'terminal velocity'
             !  is discussed (final velocity under constant force). The terminal velocity is prop to \sqrt(force/density) for potato-shaped objects.
             !  From phenomenology we think we know that the velocity is prop to the magnetic field (no \sqrt)!
@@ -401,7 +409,7 @@
         uy = uy + ux*J0t*cos_alpha * BoF*W_BxvxB  ! Jan 2019, effect seems to be much too large for LOFAR, W_BxvxB=1/10.
         ux = ux - uy*J0t*cos_alpha * BoF*W_BxvxB  ! Nov 2020: this W_BxvxB=(-1.) seems to explain the asymmetry in intensity along the vxvxB axis seen in CoREAS
         s=u0/sqrt(u0*u0 + ux*ux + uy*uy)  ! u0=velocity, account for saturation effects
-        !write(2,*) 's=',s,ux,uy,NPart,z
+        !write(2,*) 's=',i,X_rh,vDrift2, NPart,npart2,Force_x(i), BoF, FF_tc
         Ix(i)=NPart * ux*s  * FF_tc
         Iy(i)=NPart * uy*s  * FF_tc
         Isqr=iy(i)*iy(i) + ix(i)*ix(i)
@@ -412,13 +420,13 @@
         D_IMax=iImx*AtmHei_step
         !
         If(vDrift2) then
-            IQ(i)=J0Q* NPart * (1.+a_ChX)/(a_ChX + X_max/X_rh)  ! Extra factor to model density dependent charge excess
+            IQ(i)=J0Q* NPart * (1.+a_ChX)/(a_ChX + XmaxAve/X_rh)  ! Extra factor to model density dependent charge excess
         else
-            b=(X_rh-X_max)/(Xmax_0+X_rh-Xc_0)
-            IQ(i)=J0Q* NPart* ((b/a_ChX) +1.)* (1.d0-exp(-5.d0*((X_rh-Xc_0)/(X_max-Xc_0)))) &
+            b=(X_rh-XmaxAve)/(Xmax_0+X_rh-Xc_0)
+            IQ(i)=J0Q* NPart* ((b/a_ChX) +1.)* (1.d0-exp(-5.d0*((X_rh-Xc_0)/(XmaxAve-Xc_0)))) &
                *sqrt(AirDensity(i)/.06) * AirDensity(iXmx)/.06 ! v3
         !       *(AirDensity(i)/.06) * AirDensity(iXmx)/.06 ! v3
-            IQ(i)=IQ(i)*exp(-(X_max-X_rh-SigX2)**2/SigX1)
+            IQ(i)=IQ(i)*exp(-(XmaxAve-X_rh-SigX2)**2/SigX1)
         endif
         If(IQ(iQmx) .lt. IQ(i)) iQmx=i
         !
