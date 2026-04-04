@@ -3,14 +3,23 @@ Semi analytic calularion of radio emission from extensive airshowers that includ
 
 # How to install:
 git clone https://github.com/galaxyvita/pyMGMR3D.git
+
 cd pyMGMR3D/Library
+
 ./fftpack5.1d_MGMR.sh (the warnings are normal)
+
 cd ..
+
 cd program
+
 make -f MGMR3D_fit-makefile-v5.make
+
 # Run an example:
+
 cd run
+
 ./pyMGMR3D.sh SIM000001.in
+
 
 # References
 * A Macroscopic Description of Coherent Geo-Magnetic Radiation from Cosmic Ray Air Showers
