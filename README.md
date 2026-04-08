@@ -18,7 +18,7 @@ make -f MGMR3D_fit-makefile-v5.make
 
 cd run
 
-./pyMGMR3D.sh SIM000001.in
+./pyMGMR3D.sh /path/SIM000001.in
 
 
 # References
