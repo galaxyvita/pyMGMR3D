@@ -4,8 +4,8 @@
 # Checks if at least one argument (the input file) is provided.
 # If not, it prints a usage message and exits with an error.
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 <inputfile.in> [--no-hdf5] [--plot <plot_output_directory>] [--result-dir <final_results_directory>]"
-    exit 1
+  echo "Usage: $0 <inputfile.in> [--no-hdf5] [--plot <plot_output_directory>] [--result-dir <final_results_directory>]"
+  exit 1
 fi
 
 # Assign the first argument as the input file.
@@ -33,38 +33,38 @@ HDF5_FILENAME="$(dirname "$INPUT_FILE")/${BASENAME}.hdf5"
 # --- Parse flags ---
 # Loop through all provided command-line arguments to parse flags.
 while [[ $# -gt 0 ]]; do
-    case $1 in
-        --plot)
-            PLOT_ENABLED=true
-            if [ -z "$2" ] || [[ "$2" == --* ]]; then
-                echo "Error: --plot requires a directory argument."
-                exit 1
-            fi
-            PLOT_OUTPUT_DIR=$2
-            shift 2
-            ;;
-        --no-hdf5)
-            HDF5_ENABLED=false
-            shift
-            ;;
-        --result-dir)
-            if [ -z "$2" ] || [[ "$2" == --* ]]; then
-                echo "Error: --result-dir requires a directory argument."
-                exit 1
-            fi
-            RESULT_DIR=$2
-            shift 2
-            ;;
-        *)
-            echo "Warning: Unrecognized argument '$1'. Ignoring."
-            shift
-            ;;
-    esac
+  case $1 in
+  --plot)
+    PLOT_ENABLED=true
+    if [ -z "$2" ] || [[ "$2" == --* ]]; then
+      echo "Error: --plot requires a directory argument."
+      exit 1
+    fi
+    PLOT_OUTPUT_DIR=$2
+    shift 2
+    ;;
+  --no-hdf5)
+    HDF5_ENABLED=false
+    shift
+    ;;
+  --result-dir)
+    if [ -z "$2" ] || [[ "$2" == --* ]]; then
+      echo "Error: --result-dir requires a directory argument."
+      exit 1
+    fi
+    RESULT_DIR=$2
+    shift 2
+    ;;
+  *)
+    echo "Warning: Unrecognized argument '$1'. Ignoring."
+    shift
+    ;;
+  esac
 done
 
 # Create the plot output directory if plotting is enabled and it doesn't exist.
 if $PLOT_ENABLED && [ -n "$PLOT_OUTPUT_DIR" ]; then
-    mkdir -p "$PLOT_OUTPUT_DIR"
+  mkdir -p "$PLOT_OUTPUT_DIR"
 fi
 
 # Print important paths for user information.
@@ -72,13 +72,13 @@ echo "Program folder = ${PROG_DIR}"
 echo "Run folder     = ${RUN_FOLDER}"
 echo "Input file     = ${INPUT_FILE}"
 if $PLOT_ENABLED; then
-    echo "Plot output to = ${PLOT_OUTPUT_DIR}"
+  echo "Plot output to = ${PLOT_OUTPUT_DIR}"
 fi
 if $HDF5_ENABLED; then
-    echo "HDF5 output to = ${HDF5_FILENAME}"
+  echo "HDF5 output to = ${HDF5_FILENAME}"
 fi
 if [ -n "$RESULT_DIR" ]; then
-    echo "Temporary 'plot' folder will be moved to = ${RESULT_DIR}/${BASENAME}_results"
+  echo "Temporary 'plot' folder will be moved to = ${RESULT_DIR}/${BASENAME}_results"
 fi
 
 # --- Compile MGMR ---
@@ -88,9 +88,18 @@ fi
 # If compilation fails, exit the script.
 # Change back to the original run folder.
 # If changing directory fails, exit the script.
-cd "${PROG_DIR}" || { echo "Error: Could not change to program directory ${PROG_DIR}. Exiting."; exit 1; }
-make -f "MGMR3D_fit-makefile-v5.make" || { echo "Error: MGMR compilation failed. Exiting."; exit 1; }
-cd "${RUN_FOLDER}" || { echo "Error: Could not change back to run directory ${RUN_FOLDER}. Exiting."; exit 1; }
+cd "${PROG_DIR}" || {
+  echo "Error: Could not change to program directory ${PROG_DIR}. Exiting."
+  exit 1
+}
+make -f "MGMR3D_fit-makefile-v5.make" || {
+  echo "Error: MGMR compilation failed. Exiting."
+  exit 1
+}
+cd "${RUN_FOLDER}" || {
+  echo "Error: Could not change back to run directory ${RUN_FOLDER}. Exiting."
+  exit 1
+}
 
 # --- Run simulation ---
 # Create a temporary 'plot' directory within the run folder for intermediate output.
@@ -99,25 +108,31 @@ mkdir -p "${RUN_FOLDER}/plot"
 echo "Preparing Atmospheric Parameters..."
 # Run the python script first. It creates 'current_atm.dat'
 python3 "${RUN_FOLDER}/atm_models.py" "$INPUT_FILE"
-"${PROG_DIR}/MGMR3D_fit-v5" < "$INPUT_FILE"
+echo "Preparing Ice profile if needed"
+python3 "${RUN_FOLDER}/ice_models.py" "$INPUT_FILE"
+echo "Running MGMR"
+"${PROG_DIR}/MGMR3D_fit-v5" <"$INPUT_FILE"
 
 # --- Plotting with GLE and Python ---
 # Change directory to the temporary 'plot' folder to handle output files.
-cd "${RUN_FOLDER}/plot" || { echo "Error: Could not change to temporary plot directory. Exiting."; exit 1; }
+cd "${RUN_FOLDER}/plot" || {
+  echo "Error: Could not change to temporary plot directory. Exiting."
+  exit 1
+}
 
 # Check if plotting is enabled.
 if $PLOT_ENABLED; then
-    # Check if GLE (Graphics Layout Engine) command is available.
-    if command -v gle &> /dev/null; then
-        gle -d pdf -o "${PLOT_OUTPUT_DIR}/${BASENAME}_FitStokes.pdf" "${PROG_DIR}/FitStokes.GLE" "${RUN_FOLDER}/plot/FitResult"
-        gle -d jpg -r 200 -o "${PLOT_OUTPUT_DIR}/${BASENAME}_FitStokes-map.jpg" "${PROG_DIR}/FitStokes-map.GLE" "${RUN_FOLDER}/plot/"
-        gle -d pdf -o "${PLOT_OUTPUT_DIR}/${BASENAME}_sh-current.pdf" "${PROG_DIR}/sh-current.GLE" "${RUN_FOLDER}/plot/"
-    else
-        echo "GLE not found. Skipping GLE plots."
-    fi
-    # Check if python3 command is available and the required Python libraries.
-    if command -v python3 &> /dev/null; then
-        python3 - <<EOF
+  # Check if GLE (Graphics Layout Engine) command is available.
+  if command -v gle &>/dev/null; then
+    gle -d pdf -o "${PLOT_OUTPUT_DIR}/${BASENAME}_FitStokes.pdf" "${PROG_DIR}/FitStokes.GLE" "${RUN_FOLDER}/plot/FitResult"
+    gle -d jpg -r 200 -o "${PLOT_OUTPUT_DIR}/${BASENAME}_FitStokes-map.jpg" "${PROG_DIR}/FitStokes-map.GLE" "${RUN_FOLDER}/plot/"
+    gle -d pdf -o "${PLOT_OUTPUT_DIR}/${BASENAME}_sh-current.pdf" "${PROG_DIR}/sh-current.GLE" "${RUN_FOLDER}/plot/"
+  else
+    echo "GLE not found. Skipping GLE plots."
+  fi
+  # Check if python3 command is available and the required Python libraries.
+  if command -v python3 &>/dev/null; then
+    python3 - <<EOF
 try:
     import pandas
     import matplotlib
@@ -126,23 +141,23 @@ except ImportError as e:
     print(f"Missing library: {e.name}")
     exit(1)
 EOF
-        if [ $? -eq 0 ]; then
-            python3 "${PROG_DIR}/FitStokes.py" "${RUN_FOLDER}/plot/FitResult.dat" "${PLOT_OUTPUT_DIR}"
-            python3 "${PROG_DIR}/FitStokes-map.py" "${RUN_FOLDER}/plot/" "${PLOT_OUTPUT_DIR}"
-            python3 "${PROG_DIR}/sh-current.py" "${RUN_FOLDER}/plot/" "${PLOT_OUTPUT_DIR}"
-        else
-            echo "Skipping Python plotting due to missing libraries."
-        fi
+    if [ $? -eq 0 ]; then
+      python3 "${PROG_DIR}/FitStokes.py" "${RUN_FOLDER}/plot/FitResult.dat" "${PLOT_OUTPUT_DIR}"
+      python3 "${PROG_DIR}/FitStokes-map.py" "${RUN_FOLDER}/plot/" "${PLOT_OUTPUT_DIR}"
+      python3 "${PROG_DIR}/sh-current.py" "${RUN_FOLDER}/plot/" "${PLOT_OUTPUT_DIR}"
     else
-        echo "Python3 not installed. Skipping plot generation."
+      echo "Skipping Python plotting due to missing libraries."
     fi
+  else
+    echo "Python3 not installed. Skipping plot generation."
+  fi
 fi
 
 # --- Convert to HDF5 ---
 # Check if HDF5 conversion is enabled and the required Python libraries.
 if $HDF5_ENABLED; then
-    if command -v python3 &> /dev/null; then
-        python3 - <<EOF
+  if command -v python3 &>/dev/null; then
+    python3 - <<EOF
 try:
     import pandas as pd
     import numpy as np
@@ -153,29 +168,35 @@ except ImportError as e:
     print(f"Missing library: {e.name}")
     exit(1)
 EOF
-        if [ $? -eq 0 ]; then
-            python3 "${RUN_FOLDER}/MGMR_HDF5.py" "${HDF5_FILENAME}" "${INPUT_FILE}" "${RUN_FOLDER}/plot/FitResult.dat" "${RUN_FOLDER}/plot/sh_Current.dat" "${RUN_FOLDER}/plot/"
-        else
-            echo "Skipping HDF5 conversion due to missing libraries."
-        fi
+    if [ $? -eq 0 ]; then
+      python3 "${RUN_FOLDER}/MGMR_HDF5.py" "${HDF5_FILENAME}" "${INPUT_FILE}" "${RUN_FOLDER}/plot/FitResult.dat" "${RUN_FOLDER}/plot/sh_Current.dat" "${RUN_FOLDER}/plot/"
     else
-        echo "Python3 not installed. Skipping HDF5 generation."
+      echo "Skipping HDF5 conversion due to missing libraries."
     fi
+  else
+    echo "Python3 not installed. Skipping HDF5 generation."
+  fi
 fi
 
 # --- Handle Result Directory and Cleanup ---
 # Change back to the original run folder to ensure correct path for mv/rm.
-cd "${RUN_FOLDER}" || { echo "Error: Could not change back to run directory ${RUN_FOLDER}. Exiting."; exit 1; }
+cd "${RUN_FOLDER}" || {
+  echo "Error: Could not change back to run directory ${RUN_FOLDER}. Exiting."
+  exit 1
+}
 
 # If --result-dir was provided, move the 'plot' directory.
 if [ -n "$RESULT_DIR" ]; then
-    echo "Moving temporary results folder to: ${RESULT_DIR}/${BASENAME}_results"
-    mkdir -p "$RESULT_DIR"
-    mv "${RUN_FOLDER}/plot" "${RESULT_DIR}/${BASENAME}_results" || \
-        { echo "Error: Failed to move temporary 'plot' directory to ${RESULT_DIR}/${BASENAME}_results. Please check permissions or path."; exit 1; }
+  echo "Moving temporary results folder to: ${RESULT_DIR}/${BASENAME}_results"
+  mkdir -p "$RESULT_DIR"
+  mv "${RUN_FOLDER}/plot" "${RESULT_DIR}/${BASENAME}_results" ||
+    {
+      echo "Error: Failed to move temporary 'plot' directory to ${RESULT_DIR}/${BASENAME}_results. Please check permissions or path."
+      exit 1
+    }
 else
-    echo "Cleaning up temporary 'plot' directory."
-    rm -r "${RUN_FOLDER}/plot"
+  echo "Cleaning up temporary 'plot' directory."
+  rm -r "${RUN_FOLDER}/plot"
 fi
 
 echo "Run complete."

@@ -7,6 +7,7 @@
     use BigArrays, only : Line2Core, CoreDist_Dim
 !    use BigArrays, only : Ix,Iy,IQ,Ix_int,Iy_Int
     use constants, only : ci,pi,dp
+    use IceArrays, only : Ice_dim, IceHei_step, IceRefrac, dIceRefrac, Ix_ice, Iy_ice, IQ_ice, Ix_int_ice, Iy_int_ice, alpha_tr_ice, z_observer
     implicit none
     integer, intent(in) :: idi
     integer :: Nrs,irs,ith,nth,id,CD_i
@@ -629,6 +630,10 @@ End function W_tc
     use BigArrays, only : xi,dxi, AtmHei_dim, AtmHei_step, CoreDist_A, CoreDist_Dim
     use BigArrays, only : Ix,Iy,IQ,alpha_tr,Ix_int,Iy_Int, ObsDist, ObsDist_dim, ObsDist_Step
     use constants, only : dp
+    use IceArrays, only : Ice_dim, IceHei_step, IceRefrac, dIceRefrac, &
+                          Ix_ice, Iy_ice, IQ_ice, &
+                          Ix_int_ice, Iy_int_ice, &
+                          alpha_tr_ice, z_observer
     implicit none
 !    real*8 :: Ex(0:CoreDist_Dim),AxD(0:CoreDist_Dim),Ey(0:CoreDist_Dim),AyD(0:CoreDist_Dim),Ar(0:CoreDist_Dim),nt_r,t_o
     real(dp), intent(out) :: Ex,AxD,Ey,AyD,Ar,Erh
@@ -771,6 +776,64 @@ End function W_tc
 !    write(3,*) 'cald,Exb=',cald,Ex
 !    write(3,*) Jx,djx,cald,Exa,Exb
 !    write(2,*) t_o,ex,ey,ar
+!
+!   ! === ICE SHOWER CONTRIBUTION ===
+    ! Integrate Lienard-Wiechert potential over ice steps.
+    ! Uses same field expressions as atmosphere, with:
+    !   zeta  = -i*IceHei_step  (negative = below surface)
+    !   R     = sqrt(ObsDist^2 + (zeta - z_observer)^2)
+    !   NN    = 1 + IceRefrac(i)  (~1.31 surface, ~1.78 deep ice)
+    !   calD  recalculated with ice NN and dIceRefrac
+    ! The contribution accumulates coherently into Ex,Ey,Ar,etc.
+    ! from the atmosphere loop above — air/ice interference is automatic.
+    ! We use a direct step-by-step integration (no lambda-grid) because:
+    !(a) In ice n >> 1 so calD >> 0 everywhere (no Cherenkov divergence)
+    !(b) The ice Xmax is far from the air-shower Cherenkov point
+    !(c) IceHei_step is small enough to resolve the shower profile
+    If (Ice_dim .gt. 0) Then
+    Do i = 1, Ice_dim
+        Jx    = Ix_ice(i)
+        Jy    = Iy_ice(i)
+        JQ    = IQ_ice(i)
+        If (abs(Jx)+abs(Jy)+abs(JQ) .eq. 0.0d0) cycle
+        Jx_int = Ix_int_ice(i)
+        Jy_int = Iy_int_ice(i)
+        alpha  = alpha_tr_ice(i)
+        dJx    = (Ix_ice(min(i+1,Ice_dim)) - Ix_ice(max(i-1,0))) &
+               / (2.0d0 * IceHei_step)
+        dJy    = (Iy_ice(min(i+1,Ice_dim)) - Iy_ice(max(i-1,0))) &
+               / (2.0d0 * IceHei_step)
+        ! Emission point in ice: zeta is negative (below surface)
+        zeta   = -real(i, dp) * IceHei_step
+        ! Distance from emission point to observer
+        ! z_observer = 0 for surface antenna, < 0 for in-ice antenna
+        R    = sqrt(ObsDist*ObsDist + (zeta - z_observer)**2)
+        NN   = 1.0d0 + IceRefrac(i)
+        dr   = dIceRefrac(i)     ! d(xi)/dz, negative in firn -> 0 in deep ice
+        ! calD = |NN*(R - NN*zeta - dr*R^2)|
+        ! zeta is negative here, so -NN*zeta is positive and large: calD >> 0
+        calD = abs(NN*(R - NN*zeta - dr*R*R))
+        If (calD .lt. 1.0d-6) cycle
+        ! Distance behind the shower front at observer time T_o
+        ! h_c = hcto_c + T_o  (from common /time/)
+        ! -zeta = depth (positive), so h = h_c - depth
+        h = h_c - (-zeta)
+        If (h .le. 0.0d0) cycle   ! ice step not yet reached at this T_o
+        If (h .gt. 20.0d0 * PancakeThi(CD_i)) cycle  ! far behind pancake
+        Call fieh(h, CD_i, alpha, fh, dfhl, dfha)
+        dfh   = dfhl    ! alpha_tr_ice is uniform so dfha term = 0
+        ! Integration weight = step size in metres
+        weigh = IceHei_step
+        ! Accumulate E-field (identical expressions to atmosphere loop)
+        Ex  = Ex  + weigh * (dfh*Jx  - fh*dJx ) / calD
+        Ey  = Ey  + weigh * (dfh*Jy  - fh*dJy ) / calD
+        AxD = AxD + weigh * Jx_int * fh / calD
+        AyD = AyD + weigh * Jy_int * fh / calD
+        Ar  = Ar  - weigh * fh * JQ / calD
+        Erh = Erh - weigh * (fh + dfhl*h) * (-dlambda_hdr/lam) * JQ / calD
+    EndDo
+EndIf
+! === END ICE CONTRIBUTION ===
     return
     end
 !------------------------------

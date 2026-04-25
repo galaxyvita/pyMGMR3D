@@ -20,7 +20,8 @@
    use RFootPars, only : FShift_x,FShift_y, D_IMax
    use RFootPars, only : QuadSmth, XdepFrc
    use Atmosphere, only : atmparams, b_arr, c_arr
-    !use CrossProd,only : calc_alpha_vB
+   use IceArrays, only : Ice_dim
+   !use CrossProd,only : calc_alpha_vB
     !use CrossProd,only : calc_alpha_Bz
     implicit none
     real(dp) :: Force_x(0:AtmHei_dim),Force_y(0:AtmHei_dim),height, alpha_E, Force0, sin_alpha,cos_alpha
@@ -597,7 +598,25 @@
 215 Format('Zenith angle=',f7.3,' degree' ) ! ,', radial parameter=',f7.2,'[m]')
     FiPa=.false.
     Flush(unit=2)
-!    stop
+    If(Energy_sh2.gt.0.) Then
+        write(2,"(1x,'X_max2=',f7.2,', X_02=',f7.2,', lamx2=',f7.3,', E2=',1pE9.2, '[GeV]')") &
+            X_max2, X_02, lamx2, Energy_sh2
+    EndIf
+    ! === IN-ICE SHOWER EXTENSION ===
+    If (Ice_dim .gt. 0) Then
+        ! X_surface = PenDepth(0): slant-depth at ice surface, set here
+       call Initialize_Ice_Layer(PenDepth(0), Cos_Zenith)
+        If (Energy_sh2 .gt. 0.) Then
+            ! Force0 and alpha_frc0 are the geomagnetic force parameters.
+            ! They are re-used for the in-ice shower here (same direction).
+            call Compute_Ice_Shower_Currents( &
+                Energy_sh2, X_max2, X_02, lamx2, R_02, L_02, RL_param, &
+                J0Q, u0, F_over_beta, &
+                Xb_0, Xc_0, a_ChX, &
+                Force(1), alpha_frc(1))   ! Force(1),alpha_frc(1) = lowest-layer force
+        EndIf
+    EndIf
+    ! === END IN-ICE EXTENSION ===
     return
     end
 !

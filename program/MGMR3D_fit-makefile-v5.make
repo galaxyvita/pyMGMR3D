@@ -9,8 +9,7 @@ F_AntFie = $(LL_Base)
 EXECUTE = MGMR3D_fit-v5
 LIBRARY = $(Lib_Base)/libfftpack5.1d.a
 
-# Only link the files that are NOT included via 'include' statements
-OBJS = constants.o Atmosphere.o nl2sol.o AntFuncCnst.o AntFunct.o MGMR3D_fit-v5.o
+OBJS = constants.o Atmosphere.o Ice.o nl2sol.o AntFuncCnst.o AntFunct.o MGMR3D_fit-v5.o
 
 all: $(EXECUTE)
 
@@ -23,6 +22,9 @@ constants.o: Constants.f90
 Atmosphere.o: Atmosphere.f90 constants.o
 	$(FC) $(FCFLAGS) -c Atmosphere.f90 -o Atmosphere.o
 
+Ice.o: Ice.f90 constants.o
+	$(FC) $(FCFLAGS) -c Ice.f90 -o Ice.o
+
 nl2sol.o: $(F_NLSOL)/nl2sol.f90
 	$(FC) $(FCFLAGS) -c $(F_NLSOL)/nl2sol.f90 -o nl2sol.o
 
@@ -32,8 +34,7 @@ AntFuncCnst.o: $(F_AntFie)/AntFuncCnst.f90
 AntFunct.o: $(F_AntFie)/AntFunct.f90 AntFuncCnst.o
 	$(FC) $(FCFLAGS) -c $(F_AntFie)/AntFunct.f90 -o AntFunct.o
 
-# The main file compiles and brings in the included logic
-MGMR3D_fit-v5.o: MGMR3D_fit-v5.f90 constants.o Atmosphere.o
+MGMR3D_fit-v5.o: MGMR3D_fit-v5.f90 constants.o Atmosphere.o Ice.o
 	$(FC) $(FCFLAGS) -c MGMR3D_fit-v5.f90 -o MGMR3D_fit-v5.o
 
 clean:

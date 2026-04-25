@@ -7,6 +7,9 @@
     use RFootPars, only : NTo, MoliereRadius,test
     use eventdata, only : Fitting,ReadInput
     use T_Analyze, only : Analyze
+    use eventdata, only : Fitting,ReadInput
+    use T_Analyze, only : Analyze
+    use IceArrays, only : Ice_dim, IceHei_step, IceRefrac, z_observer
     implicit none
 !    logical first
 !    integer, parameter :: NAnt_max=1  ! 900
@@ -21,6 +24,7 @@
     common / time / zeta_c,hcto_c
       integer :: N_branch
       real(dp) :: T_oi,zeta_c,hcto_c,zeta_d,hcto_d ! ,Antd
+      real(dp) :: D_to_obs
 !
     If(ReadInput) call SetParams
 !    first=.true.
@@ -139,6 +143,23 @@
               endif
             endif
         enddo
+        ! === ICE T_OBS EXTENSION ===
+        ! Scan ice steps.  Emission points have negative zeta (below surface).
+        ! Observer may be on the surface (z_observer=0) or in the ice (z_observer<0).
+        If (Ice_dim .gt. 0) Then
+          Do i = 1, Ice_dim
+            z = -real(i, dp) * IceHei_step       ! negative: below surface [m]
+            t_r = -z                                ! shower-front travel time [m/c]
+            D_to_obs = sqrt(ObsDist**2 + (z - z_observer)**2)
+            T_obs(i) = t_r + D_to_obs * (1.0d0 + IceRefrac(i))
+            If (T_obs(i) .lt. s) Then
+              s = T_obs(i)
+              k = -(i)   ! negative index marks this as an ice Cherenkov point
+            EndIf
+          EndDo
+        EndIf
+        ! === END ICE T_OBS EXTENSION ===
+
         !write(2,*) 'MGMR3D: ObsDist=',ObsDist
         call FindZetaC(k,zeta_c,hcto_c)
         !   If(.not. Fitting) write(2,211) ObsDist,zeta_c/1000.,-hcto_c
@@ -154,6 +175,7 @@
         if(k.ge.AtmHei_dim) then   ! No cherenkov solution found below max height
             t_ch(idi)=s
         endif
+
         !write(2,*) idi,k,r,s,nxx,t_ch(idi)
         !
         if(ObsDist_dim.eq.1) OPEN(UNIT=4,STATUS='unknown',FILE='plot/t_tret.dat')

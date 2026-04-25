@@ -19,6 +19,7 @@
     use BigArrays, only : nuTrace_step, nuTrace_dim, tTrace_step, tTrace_dim_b, tTrace_dim_o, tTrace_Offset
     use eventdata, only : Voltages, Energy_sh, NoisePower, OutFileLabel
     use Atmosphere, only : setup_atmosphere
+    use IceArrays, only : ice_model_id, IceHei_step, z_observer, ice_depth_max
     implicit none
 !    logical first
     INTEGER DATE_T(8),i
@@ -33,16 +34,25 @@
     real(dp) :: SamplingTime,h(0:N_step_max),F(0:N_step_max),a(0:N_step_max),dfx
     real(dp) :: sin_alpha
     integer :: atm_model_id
+    real(dp)  :: ice_depth_max_in
+    real(dp)  :: z_observer_in
+    integer   :: ice_model_id_in
+    real(dp)  :: ice_step_in
     NAMELIST /ShPars/ OutFileLabel,test,AtmHei_dim,AtmHei_step, &
         SelectFh, lam_tc ,lam_100, XDepAlpha, IntegrateCurrent, PancakeIncField,  &
         ObsDist_dim, ObsDist_Step,  tTrace_step, lamx, u0, a_ChX, J0Q, padding, D_ESmooth, AlternativeSmooth, u0, &
         F_lim, nu_min,nu_max, SamplingTime, StParRange, Voltages, rh0,MoliereRadius, J0t, atm_model_id, GroundLevel, X_0, X_max, &
         RnrmA, RnrmB, Zen_sh, Azi_sh, Zen_B, Azi_B, Intensity_Weight, NoisePower, Energy_sh, RL_param, R_0,L_0, Fit_StI, &
-        X_02, lamx2, X_max2, R_02,L_02, Energy_sh2, NF_max, QuadSmth, XdepFrc
+        X_02, lamx2, X_max2, R_02,L_02, Energy_sh2, NF_max, QuadSmth, XdepFrc, &
+        ice_model_id_in, ice_depth_max_in, ice_step_in, z_observer_in
     atm_model_id = 1  ! Default to US Standard
     ! --- NEW: Load the flexible atmosphere ---
     ! You can hard-code the filename or pass it as a variable
     call setup_atmosphere('current_atm.dat', GroundLevel)
+    ice_model_id_in  = 0       ! default: no ice
+    ice_depth_max_in = 500.0d0 ! [m]
+    ice_step_in      = 5.0d0   ! [m]
+    z_observer_in    = 0.0d0   ! [m]  0 = antenna on surface
     ! -----------------------------------------
     Test=.false.
     AtmHei_dim=3000d0 ; AtmHei_step=10.d0 ! [m]
@@ -64,6 +74,11 @@
     !
     !pi=2._dp *asin(1._dp)  ! This is the real constant pi, now set in constants
     read(*, NML = ShPars)
+    ! Copy ice parameters into IceArrays module for use in AssignDim/Initialize
+    ice_model_id  = ice_model_id_in
+    ice_depth_max = ice_depth_max_in
+    IceHei_step   = ice_step_in
+    z_observer    = z_observer_in
     OutFile='MGMR3D_fit-'
     !write(*, NML = ShPars) 
     OPEN(UNIT=2,STATUS='unknown',FILE=TRIM(OutFile)//TRIM(OutFileLabel)//'.out')

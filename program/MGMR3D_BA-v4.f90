@@ -31,6 +31,9 @@
     integer, save :: LamGrid_Nrt, LamGrid_max
   contains
   subroutine AssignDim()
+    ! === ICE ARRAYS: use must be the first statement in the subroutine ===
+    use IceArrays, only : ice_model_id, ice_depth_max, IceHei_step
+    ! =====================================================================
     allocate(Z_ch(ObsDist_dim))
     allocate(T_ch(ObsDist_dim))
 !    allocate(Ex(1:tTrace_dim)) ;  allocate(AxD(1:tTrace_dim))
@@ -44,8 +47,16 @@
     allocate(xi(0:AtmHei_dim)) ; allocate(dxi(0:AtmHei_dim)) ; allocate(ddxi(0:AtmHei_dim))
     allocate(Ix(0:AtmHei_dim)) ; allocate(Iy(0:AtmHei_dim)) ; allocate(IQ(0:AtmHei_dim))
     allocate(alpha_tr(0:AtmHei_dim)) ; allocate(Ix_int(0:AtmHei_dim)) ; allocate(Iy_Int(0:AtmHei_dim))
+    ! === ICE ARRAYS: allocate if ice simulation is requested ===
+    If (ice_model_id .gt. 0) Then
+        Call AssignIceDim( NINT(ice_depth_max / IceHei_step), IceHei_step )
+    EndIf
+    ! ===========================================================
   end subroutine AssignDim
   subroutine DAssignArr()
+    ! === ICE ARRAYS: use must be the first statement in the subroutine ===
+    use IceArrays, only : Ice_dim
+    ! =====================================================================
     deallocate(Ex_nu, Ey_nu, Er_nu)
     deallocate(CEx, CEy, CEr) ; deallocate(ObsPlsTime)
     deallocate(Ex_nu_dwn, Ey_nu_dwn, Er_nu_dwn, filt)
@@ -62,6 +73,9 @@
 !    deallocate(t_tb, Ex_tb, AxD_tb, Ey_tb, AyD_tb, Ar_tb, Erh_tb)
 !    deallocate(Ex_spld, AxD_spld, Ey_spld, AyD_spld, Ar_spld, Erh_spld)
 !
+    ! === ICE ARRAYS: deallocate if they were allocated ===
+    Call DAssignIceArr()
+    ! =====================================================
   end subroutine DAssignArr
   end module BigArrays
 ! ==========================================================
