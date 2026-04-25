@@ -29,10 +29,10 @@ X_0=10.0
 X_max=696.05
 energy_sh=4217212.07 ![GeV]
 ! ------------------
-ice_model_id = 1 !0=no ice, 1=constant, other stuff
-ice_depth_max = 500 ![m] maximun uce depth
-ice_step = 5  ![m] depth step size
-z_observer = -100 ! [m] antenna depths 0=surface
+ice_model = 1 !0=no ice, 1=constant, other stuff
+X_max_ice = 500 ![m] maximun uce depth
+step_ice = 5  ![m] depth step size
+observer_z = -100 ! [m] antenna depths 0=surface
 X_02 = 950.0
 X_max2 = 962.0 ![g/cm^2] in ice!
 lamx = 100.0

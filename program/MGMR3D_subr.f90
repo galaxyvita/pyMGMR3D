@@ -7,7 +7,9 @@
     use BigArrays, only : Line2Core, CoreDist_Dim
 !    use BigArrays, only : Ix,Iy,IQ,Ix_int,Iy_Int
     use constants, only : ci,pi,dp
-    use IceArrays, only : Ice_dim, IceHei_step, IceRefrac, dIceRefrac, Ix_ice, Iy_ice, IQ_ice, Ix_int_ice, Iy_int_ice, alpha_tr_ice, z_observer
+    use IceArrays, only : Ice_dim, IceHei_step, IceRefrac, dIceRefrac 
+    use IceArrays, only : Ix_ice, Iy_ice, IQ_ice, Ix_int_ice, Iy_int_ice
+    use IceArrays, only : alpha_tr_ice, z_observer
     implicit none
     integer, intent(in) :: idi
     integer :: Nrs,irs,ith,nth,id,CD_i

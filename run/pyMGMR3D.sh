@@ -109,7 +109,7 @@ echo "Preparing Atmospheric Parameters..."
 # Run the python script first. It creates 'current_atm.dat'
 python3 "${RUN_FOLDER}/atm_models.py" "$INPUT_FILE"
 echo "Preparing Ice profile if needed"
-python3 "${RUN_FOLDER}/ice_models.py" "$INPUT_FILE"
+python3 "${RUN_FOLDER}/ice_models.py" --input "$INPUT_FILE"
 echo "Running MGMR"
 "${PROG_DIR}/MGMR3D_fit-v5" <"$INPUT_FILE"
 
