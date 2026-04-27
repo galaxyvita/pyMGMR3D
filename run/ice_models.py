@@ -81,10 +81,10 @@ def read_ice_params(input_file):
     Read ice-related parameters from a pyMGMR3D .in input file.
 
     Returns a dict with keys:
-        ice_model_id  (int)   : 0=none, 1=constant, 2=S.Pole, 3=Greenland
-        ice_depth_max (float) : maximum ice depth to simulate [m]
-        ice_step      (float) : depth step size [m]
-        z_observer    (float) : antenna depth below surface [m], 0=surface, <0=in ice
+        ice_model  (int)   : 0=none, 1=constant, 2=S.Pole, 3=Greenland
+        X_max_ice (float) : maximum ice depth to simulate [m]
+        step_ice      (float) : depth step size [m]
+        observer_z    (float) : antenna depth below surface [m], 0=surface, <0=in ice
         Zen_sh        (float) : shower zenith angle [deg], used for slant-depth conversion
     """
     with open(input_file, "r") as f:
@@ -92,14 +92,13 @@ def read_ice_params(input_file):
 
     # Defaults (must match Fortran defaults in SetParams)
     params = {
-        "ice_model_id":  int(get_val(text, "ice_model_id")  or 0),
-        "ice_depth_max": float(get_val(text, "ice_depth_max") or 500.0),
-        "ice_step":      float(get_val(text, "ice_step")      or 5.0),
-        "z_observer":    float(get_val(text, "z_observer")    or 0.0),
+        "ice_model":  int(get_val(text, "ice_model")  or 0),
+        "X_max_ice": float(get_val(text, "X_max_ice") or 500.0),
+        "step_ice":      float(get_val(text, "step_ice")      or 5.0),
+        "observer_z":    float(get_val(text, "observer_z")    or 0.0),
         "Zen_sh":        float(get_val(text, "Zen_sh")        or 0.0),
     }
     return params
-
 
 # ---------------------------------------------------------------------------
 # Profile generation
@@ -136,12 +135,12 @@ def generate_ice_profile(ice_model_id, depth_max_m=500.0, dz_m=5.0,
     """
     if ice_model_id == 0:
         if verbose:
-            print("ice_model_id=0: no ice, current_ice.dat not created.")
+            print("ice_model=0: no ice, current_ice.dat not created.")
         return {}
 
     if ice_model_id not in ICE_MODELS:
         raise ValueError(
-            f"Unknown ice_model_id={ice_model_id}. "
+            f"Unknown ice_model={ice_model_id}. "
             f"Valid values: {list(ICE_MODELS.keys())}"
         )
 
@@ -205,21 +204,19 @@ def run_from_input_file(input_file, output_file="current_ice.dat", verbose=True)
         for k, v in params.items():
             print(f"  {k} = {v}")
 
-    if params["ice_model_id"] == 0:
+    if params["ice_model"] == 0:
         if verbose:
-            print("ice_model_id=0: skipping ice profile generation.")
+            print("ice_model=0: skipping ice profile generation.")
         return {}
 
     return generate_ice_profile(
-        ice_model_id  = params["ice_model_id"],
-        depth_max_m   = params["ice_depth_max"],
-        dz_m          = params["ice_step"],
+        ice_model_id  = params["ice_model"],
+        depth_max_m   = params["X_max_ice"],
+        dz_m          = params["step_ice"],
         output_file   = output_file,
         zenith_deg    = params["Zen_sh"],
         verbose       = verbose,
     )
-
-
 # ---------------------------------------------------------------------------
 # Command-line interface
 # ---------------------------------------------------------------------------
