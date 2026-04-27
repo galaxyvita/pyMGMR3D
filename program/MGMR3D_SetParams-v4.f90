@@ -45,14 +45,8 @@
         RnrmA, RnrmB, Zen_sh, Azi_sh, Zen_B, Azi_B, Intensity_Weight, NoisePower, Energy_sh, RL_param, R_0,L_0, Fit_StI, &
         X_02, lamx2, X_max2, R_02,L_02, Energy_sh2, NF_max, QuadSmth, XdepFrc, &
         ice_model, X_max_ice, step_ice, observer_z
-    !atm_model_id = 1  ! Default to US Standard
-    ! --- NEW: Load the flexible atmosphere ---
-    ! You can hard-code the filename or pass it as a variable
+    ! --- NEW: Load the flexible atmosphere and ice---
     call setup_atmosphere('current_atm.dat', GroundLevel)
-    !ice_model  = 0       ! default: no ice
-    !X_max_ice = 500.0d0 ! [m]
-    !step_ice      = 5.0d0   ! [m]
-    !observer_z    = 0.0d0   ! [m]  0 = antenna on surface
     ! -----------------------------------------
     Test=.false.
     AtmHei_dim=3000d0 ; AtmHei_step=10.d0 ! [m]

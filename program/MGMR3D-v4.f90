@@ -159,7 +159,6 @@
           EndDo
         EndIf
         ! === END ICE T_OBS EXTENSION ===
-
         !write(2,*) 'MGMR3D: ObsDist=',ObsDist
         call FindZetaC(k,zeta_c,hcto_c)
         !   If(.not. Fitting) write(2,211) ObsDist,zeta_c/1000.,-hcto_c

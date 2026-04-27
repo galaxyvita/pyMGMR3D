@@ -237,9 +237,7 @@ subroutine Compute_Ice_Shower_Currents( &
 !   Key physics in ice vs. air:
 !     - BoF uses sqrt(rho_Xmx/rho_i): in deep ice this ratio ~ 1 (correct:
 !       suppresses geomagnetic emission relative to charge excess)
-!     - IQ scales as sqrt(rho_i/0.06) * rho_Xmx/0.06: in deep ice gives
-!       ~3.9 * 15 ~ 60x larger than at a typical air-shower Xmax, correctly
-!       reflecting Askaryan dominance in ice
+!     - IQ scales as sqrt(rho_i/0.06) * rho_Xmx/0.06
 !
     use IceArrays
     use constants, only : dp, pi

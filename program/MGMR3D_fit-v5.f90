@@ -313,9 +313,3 @@
    write(2,*) 'Reading error on data file'
    Stop 'read error'
     end program MGMR3D_fit
-!
-!------------------------------
-!    include 'C:/OlafsUtil/LSQ/nl2sol.f90'
-!    include '../NumLib/LSQ/nl2sol.f90'
-!------------------------------
-!------------------------------

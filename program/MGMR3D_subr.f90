@@ -779,7 +779,7 @@ End function W_tc
 !    write(3,*) Jx,djx,cald,Exa,Exb
 !    write(2,*) t_o,ex,ey,ar
 !
-!   ! === ICE SHOWER CONTRIBUTION ===
+    ! === ICE SHOWER CONTRIBUTION ===
     ! Integrate Lienard-Wiechert potential over ice steps.
     ! Uses same field expressions as atmosphere, with:
     !   zeta  = -i*IceHei_step  (negative = below surface)

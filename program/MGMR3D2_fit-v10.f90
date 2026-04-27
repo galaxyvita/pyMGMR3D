@@ -7,8 +7,6 @@
     Include 'MGMR3D2_BA-v10.f90'
     Include 'MGMR3D2_RFootPars-v10.f90'  ! contains CrossProd; July 2020: fit parameters changed
     Include 'MGMR3D_FFT.f90'
-    !Include 'C:\Users\Olaf Scholten\Documents\AstroPhys\Lightning\Imaging\LMA\LMA2019\Program/AntFuncCnst.f90' !Take this out when using the LINUX makefile
-    !Include 'C:\Users\Olaf Scholten\Documents\AstroPhys\Lightning\Imaging\LMA\LMA2019\Program/AntFunct.f90' !Take this out when using the LINUX makefile
     Include '../../LOFLI/FORTRANsrc/AntFuncCnst.f90' !Take this out when using the LINUX makefile
     Include '../../LOFLI/FORTRANsrc/AntFunct.f90' !Take this out when using the LINUX makefile
     Include 'MGMR3D2_analyse-v10.f90'
@@ -21,7 +19,6 @@
     Include 'MGMR3D2_SetParams-v10.f90'
     Include 'MGMR3D_Fit_RadioFoot-v4.f90'
     Include 'MGMR3D2_shower-v10.f90'
-    !Include 'C:\Users\Olaf Scholten\Documents\AstroPhys\Lightning\Imaging\LMA\LMA2019\Program/nl2sol.f90' !Take this out when using the LINUX makefile
     Include '../../LOFLI/FORTRANsrc/nl2sol.f90' !Take this out when using the LINUX makefile
 !------------------------------
 	program MGMR3D2_fit
