@@ -368,11 +368,19 @@
    If(vDrift2) Xmax_0 = 540/Cos_Zenith   ! changed June 24, 2018 to =500
    !write(2,*) X_max, X_0, lamx, Energy_sh
    XmaxAve=X_max
-   If(Energy_sh2.gt.0.) XmaxAve=(Energy_sh*X_max+Energy_sh2*X_max2)/(Energy_sh+Energy_sh2)
+   If(Energy_sh2.gt.0. .and. Energy_sh.gt.0.) Then
+       XmaxAve=(Energy_sh*X_max+Energy_sh2*X_max2)/(Energy_sh+Energy_sh2)
+   ElseIf(Energy_sh2.gt.0. .and. Energy_sh.le.0.) Then
+       XmaxAve=X_max2   ! only ice shower active; use its Xmax
+   EndIf
+   ! Clamp XmaxAve to atmospheric range: if Xmax is in ice (beyond PenDepth(0)),
+   ! use the ground-level density as the reference density in BoF and IQ.
+   If(XmaxAve .gt. PenDepth(0)) XmaxAve=PenDepth(0)
    Do i=AtmHei_dim-1,0,-1    ! calculate ixmx
       if(PenDepth(i).gt.XmaxAve) exit
    EndDo
    iXmx=i  ! corresponds to the index where Xmax is
+   If(iXmx .lt. 0) iXmx=0   ! guard: clamp to ground level
    iImx=1
    iQmx=1
    W_BxvxB=0. ! Nov 2020: this gives good agreement for U/I, better than +/-1./10.
@@ -487,6 +495,8 @@
             ! , Ix(i)/NPart, IQ(i)/NPart , X_rh-X_max, Iy(i)/NPart &
             , sqrt(alpha_E)*100., atan2(Force_y(i), Force_x(i))*180./pi
     end do
+    write(2,*) 'X_surface = PenDepth(0) =', PenDepth(0)
+    write(2,*) 'X_02 =', X_02, 'X_max2 =', X_max2
     Ix(AtmHei_dim)=0.d0 ;  Iy(AtmHei_dim)=0.d0   ; IQ(AtmHei_dim)=0.d0
     close(unit=4)
     F_max=sqrt(F_max)

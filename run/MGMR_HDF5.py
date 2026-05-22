@@ -20,14 +20,6 @@ def initialize_mgmr_hdf5(output_path):
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    if output_path.exists():
-        response = input(f"Warning: {output_path} already exists. Overwrite? [y/n]: ").strip().lower()
-        if response != 'y':
-            print("Aborting.")
-            sys.exit(1)
-        else:
-            output_path.unlink()  # Delete the old file
-
     hdf = h5py.File(output_path, 'w')
     
     # Create groups
@@ -224,7 +216,6 @@ def add_timetraces_to_observers(hdf5_path, trace_dir):
 
             df = pd.read_csv(trace_file, sep=r'\s*,\s*', engine='python', comment='!', header=None)
             df.columns = ["t_us", "Re_Ex", "Re_Ey", "Im_Ex", "Im_Ey"]
-            #df[["Re_Ex", "Re_Ey", "Im_Ex", "Im_Ey"]]*=1e-5 #convert 100kV/m to V/m 
             data = df.to_numpy(dtype='f8')
             dset = observer_grp.create_dataset(f"{antenna_name}", data=data)
             x, y = np.cos(np.deg2rad(float(theta))) * int(d), np.sin(np.deg2rad(float(theta))) * int(d)
